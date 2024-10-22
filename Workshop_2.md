@@ -35,57 +35,153 @@
 - ✨Magic ✨
 
 ## Цель работы
-установить необходимое программное обеспечение, которое пригодится для создания интеллектуальных моделей на Python. Рассмотреть процесс установки игрового движка Unity для разработки игр.
+Научиться передавать в Unity данные из Google Sheets с помощью Python. Также научиться анализировать игровые переменные, описывать их изменение и поведение
 
 ## Задание 1
-### Написать программу Hello World на Python с запуском в Jupiter Notebook.
+### Выберите одну из игровых переменных в игре СПАСТИ РТФ: Выживание (HP, SP, игровая валюта, здоровье и т.д.), опишите её роль в игре, условия изменения / появления и диапазон допустимых значений. Постройте схему экономической модели в игре и укажите место выбранного ресурса в ней.
 Ход работы:
-- Скачать Anaconda и запустить Anaconda-Navigator.
-- Запустить инструмент Jupyter Notebook и создать файл с именем HelloWorld.
-- Открыть созданный файл с именем HelloWorld, написать в него команду print() с характерным содержанием и запустить выполнение, нажав Run.
-
-
-
-![image](https://github.com/user-attachments/assets/adae1980-e2f0-4f69-bc0b-74f374def9f5)
+- Я выбрал переменную здоровье(hp), ее роль в игре отображать насколько "жив" герой за которого играет игрок, а так же ее величиная влияет на ксловие конца игры.
+  Изменение переменной:
+  - если игрок получил урон, то величина уменьшается
+  - если игрок во время прокачки выбрал соотвествующие навыки, то они восполняют здоровье
+  Диапазон допустимых значений переменной прост, от 0 и до лимита указанного в игре
+- Схема экономической модели ресурса:
+![image](https://github.com/user-attachments/assets/06cc9fd8-b2e1-4c71-a48d-92e51eca96e1)
 
 ## Задание 2
-### Написать программу Hello World на C# с запуском на Unity.
+### ### С помощью скрипта на языке Python заполните google-таблицу данными, описывающими выбранную игровую переменную в игре “СПАСТИ РТФ:Выживание”. Средствами google-sheets визуализируйте данные в google-таблице (постройте график / диаграмму и пр.) для наглядного представления выбранной игровой величины. Опишите характер изменения этой величины, опишите недостатки в реализации этой величины (например, в игре может произойти условие наступления эксплойта) и предложите до 3-х вариантов модификации условий работы с переменной, чтобы сделать игровой опыт лучше.
 Ход работы:
-- Скачать Unity и авторизоваться.
-- Скачать среду разработки для работы с C# (в моем случае Microsoft Visual Studio).
-- Создать 3D проект.
-- Добавить пустой GameObject.
-- Написать скрипт компонента, который будет выводить в консоль "Hello World!".
-
-```C#
-
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public class Helloworld : MonoBehaviour 
-{
-    void Start()
-    {
-        Debug.Log("Hello world!");
-    }
-}
-
-
+- Для начала нужно определить как меняется выбранная мной игровая переменная:
+Здоровье игрока меняется в зависимсоти от получения им урона, это значит, что изменение этой переменной зависит от игрока и его навыка. Поскольку есть множество вариантов изменения этого параметра, я, для простоты, взял ситуацию когда игрок просто получает урон с некоторым промежутком времени.
+- Из-за простоты выбранной ситуации график изменения переменной выглядит как обычная прямая (В более сложных ситуациях график может иметь более сложное поведене):
+![image](https://github.com/user-attachments/assets/f582d53d-1021-435d-ae6b-f2c698462f8d)
+Ссылка на таблицу: https://docs.google.com/spreadsheets/d/1-TBYwyDcrPz_f4pHD6Jv8I1gbH_UNFmD-HplJS98Nkk/edit?gid=0#gid=0
+- Из графика видно что величина меняться от 30 (лимит здоровья) до 0 (конец игры), уменьшение величины происходит когда игрок получает урон (в данном примере -10),   а увеличение когда игрок либо "вампириться", либо заканчивает волну. Недостатков в реализации величины нету, посколько она изменяется довольно логично и просто
+- Заполнение таблицы было выполненно с помощью кода на Python:
+```Python
+import gspread
+import numpy as np
+gc = gspread.service_account(filename = 'unitydatascience-438210-b0e595b74019.json')#Создание клиентской сессии 
+sh = gc.open("UnityWorkshop2")#Подключение к таблице
+current_hp = 30
+i = 0
+while current_hp >= 0:
+    i += 1
+    if i == 0:
+        continue
+    else:
+        sh.sheet1.update_acell(('A' + str(i)), str(i))
+        sh.sheet1.update_acell(('B' + str(i)), str(current_hp))
+        print(current_hp)
+        current_hp -= 10
 ```
-- Повесить скрипт на объект и запустить проект.
-  ![image](https://github.com/user-attachments/assets/b563b643-5326-40c2-b353-5d4820c6d2d5)
+- Поскольку, в игре СПАСТИ РТФ довольно мало взаимодействия с хп и мало условий его изменения, то можно дополнить функционал игры следющими идеями:
+    - Добавить предмет который увеличивает текущее здоровье двуями способами, либо моментально, либо переодически
+    - Возможность расходовать текущее здоровье в замен на какой ресурс (например патроны), возможно придется добавлять новые предметы чтобы не ломать логику              старого предмета с этим нововведением
+    - Возможность прибавлять предел здоровья (вне прокачки) на определенный промежуток времени, например, для битвы с боссом
 
 
 ## Задание 3
-### Какую сущность(и) мы бы могли "обучить" ML-Agent-ом для того чтобы создать более качественный игровой опыт?
-Сущность может выполнять задачи описанные ниже
-- Советчик по прокачке, сущность может анализировать ситуацию в игре и на основе этого советовать что можно прокачать в определенный момент времени.
-- Сущность может определять модель поведения у различных врагов
+### Настройте на сцене Unity воспроизведение звуковых файлов, описывающих динамику изменения выбранной переменной. Например, если выбрано здоровье главного персонажа вы можете выводить сообщения, связанные с его состоянием.
+Ход работы:
+- Для реализации данного задания я выделил правильно по которым описывается динамика изменения здоровья:
+    - Если хп около лимита (в моем случае hp >= 30), то воспроизводится звук "хороший"
+    - Если хп около среднего значения (в моем случае 30 > hp >= 20), то воспроизводится звук "средний"
+    - Если хп около минимума (в моем случае hp <= 0), то воспроизводится звук "плохой"
+- Для отображения этой динамики в Unity я создал компонент с таким скриптом (Это скрипт из методички, с небольшими изменениями):
+```C#
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Networking;
+using SimpleJSON;
+
+public class NewBehaviourScript : MonoBehaviour
+{
+    public AudioClip goodSpeak;
+    public AudioClip normalSpeak;
+    public AudioClip badSpeak;
+    private AudioSource selectAudio;
+    private Dictionary<string, float> dataSet = new Dictionary<string, float>();
+    private bool statusStart = false;
+    private int i = 1;
+    void Start()
+    {
+        StartCoroutine(GoogleSheets());
+    }
+    void Update()
+    {
+        if (dataSet["Mon_" + i.ToString()] >= 30 & statusStart == false & i != dataSet.Count)
+        {
+            StartCoroutine(PlaySelectAudioGood());
+            Debug.Log(dataSet["Mon_" + i.ToString()]);
+            Debug.Log("Проигрывается звук 'Horosho'");
+        }
+        if (dataSet["Mon_" + i.ToString()] < 30 & dataSet["Mon_" + i.ToString()] >= 20 & statusStart == false & i != dataSet.Count)
+        {
+            StartCoroutine(PlaySelectAudioNormal());
+            Debug.Log(dataSet["Mon_" + i.ToString()]);
+            Debug.Log("Проигрывается звук 'Sredne'");
+        }
+        if (dataSet["Mon_" + i.ToString()] < 20 & statusStart == false & i != dataSet.Count)
+        {
+            StartCoroutine(PlaySelectAudioBad());
+            Debug.Log(dataSet["Mon_" + i.ToString()]);
+            Debug.Log("Проигрывается звук 'Ploho'");
+        }
+    }
+
+    IEnumerator GoogleSheets()
+    {
+        UnityWebRequest curentResp = UnityWebRequest.Get("https://sheets.googleapis.com/v4/spreadsheets/1-TBYwyDcrPz_f4pHD6Jv8I1gbH_UNFmD-HplJS98Nkk/values/Лист1?key=AIzaSyBFrX6sxQ8GY5gv57Az0AXnpU1rQKbjwJU");
+        yield return curentResp.SendWebRequest();
+        string rawResp = curentResp.downloadHandler.text;
+        var rawJson = JSON.Parse(rawResp);
+        foreach (var itemRawJson in rawJson["values"])
+        {
+            var parseJson = JSON.Parse(itemRawJson.ToString());
+            var selectRow = parseJson[0].AsStringList;
+            dataSet.Add(("Mon_" + selectRow[0]), float.Parse(selectRow[1]));
+        }
+    }
+    IEnumerator PlaySelectAudioGood()
+    {
+        statusStart = true;
+        selectAudio = GetComponent<AudioSource>();
+        selectAudio.clip = goodSpeak;
+        selectAudio.Play();
+        yield return new WaitForSeconds(3);
+        statusStart = false;
+        i++;
+    }
+    IEnumerator PlaySelectAudioNormal()
+    {
+        statusStart = true;
+        selectAudio = GetComponent<AudioSource>();
+        selectAudio.clip = normalSpeak;
+        selectAudio.Play();
+        yield return new WaitForSeconds(3);
+        statusStart = false;
+        i++;
+    }
+    IEnumerator PlaySelectAudioBad()
+    {
+        statusStart = true;
+        selectAudio = GetComponent<AudioSource>();
+        selectAudio.clip = badSpeak;
+        selectAudio.Play();
+        yield return new WaitForSeconds(4);
+        statusStart = false;
+        i++;
+    }
+}
+```
+- Как видно на изображении ниже, скрипт работает без проблем и в Unity наглядно изображена динамика изменения здоровья
+![image](https://github.com/user-attachments/assets/c48c3e2a-255a-40ad-ba96-99abd890057c)
 
 ## Выводы
 
-Я узнал как скачивать Anaconda и Unity, а также узнал начальные этапы использования этих ПО.
+В ходе работы я научился ананлизировать ресурсы определенной игры, визуализировать изменения и поведения этого ресурса, с помощью соотвествующих схем и ПО
 
 | Plugin | README |
 | ------ | ------ |
