@@ -1,14 +1,14 @@
 # АНАЛИЗ ДАННЫХ И ИСКУССТВЕННЫЙ ИНТЕЛЛЕКТ [in GameDev]
-Отчет по лабораторной работе #1 выполнил(а):
+Отчет по лабораторной работе #4 выполнил(а):
 - Стрежнев Егор Сергеевич
 - РИ-230918
 Отметка о выполнении заданий (заполняется студентом):
 
 | Задание | Выполнение | Баллы |
 | ------ | ------ | ------ |
-| Задание 1 | * | ? |
-| Задание 2 | * | ? |
-| Задание 3 | * | ? |
+| Задание 1 | * | * |
+| Задание 2 | * | * |
+| Задание 3 | * | * |
 
 знак "*" - задание выполнено; знак "#" - задание не выполнено;
 
@@ -40,21 +40,313 @@
 ## Задание 1. В проекте Unity реализовать перцептрон, который умеет производить вычисления
 Ход работы:
 - Возьмем скрипт, в котором описана логика обучения и вычисления перцептрона
-```C#
-using
+```C#  
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+[System.Serializable]
+public class TrainingSet
+{
+	public double[] input;
+	public double output;
+}
+
+public class Perceptron : MonoBehaviour {
+
+	public TrainingSet[] ts;
+	double[] weights = {0,0};
+	double bias = 0;
+	double totalError = 0;
+
+	double DotProductBias(double[] v1, double[] v2) 
+	{
+		if (v1 == null || v2 == null)
+			return -1;
+	 
+		if (v1.Length != v2.Length)
+			return -1;
+	 
+		double d = 0;
+		for (int x = 0; x < v1.Length; x++)
+		{
+			d += v1[x] * v2[x];
+		}
+
+		d += bias;
+	 
+		return d;
+	}
+
+	double CalcOutput(int i)
+	{
+		double dp = DotProductBias(weights,ts[i].input);
+		if(dp > 0) return(1);
+		return (0);
+	}
+
+	void InitialiseWeights()
+	{
+		for(int i = 0; i < weights.Length; i++)
+		{
+			weights[i] = Random.Range(-1.0f,1.0f);
+		}
+		bias = Random.Range(-1.0f,1.0f);
+	}
+
+	void UpdateWeights(int j)
+	{
+		double error = ts[j].output - CalcOutput(j);
+		totalError += Mathf.Abs((float)error);
+		for(int i = 0; i < weights.Length; i++)
+		{			
+			weights[i] = weights[i] + error*ts[j].input[i]; 
+		}
+		bias += error;
+	}
+
+	double CalcOutput(double i1, double i2)
+	{
+		double[] inp = new double[] {i1, i2};
+		double dp = DotProductBias(weights,inp);
+		if(dp > 0) return(1);
+		return (0);
+	}
+
+	void Train(int epochs)
+	{
+		InitialiseWeights();
+		
+		for(int e = 0; e < epochs; e++)
+		{
+			totalError = 0;
+			for(int t = 0; t < ts.Length; t++)
+			{
+				UpdateWeights(t);
+				Debug.Log("W1: " + (weights[0]) + " W2: " + (weights[1]) + " B: " + bias);
+			}
+			Debug.Log("TOTAL ERROR: " + totalError);
+		}
+	}
+
+	void Start () {
+		Train(8);
+		Debug.Log("Test 0 0: " + CalcOutput(0,0));
+		Debug.Log("Test 0 1: " + CalcOutput(0,1));
+		Debug.Log("Test 1 0: " + CalcOutput(1,0));
+		Debug.Log("Test 1 1: " + CalcOutput(1,1));		
+	}
+	
+	void Update () {
+		
+	}
+}
 ```
+- Для удобства я решил добавить возможность указать количество эпох через инспектор, так выглядит обновленный скрипт (так же он содержит изменения и для 3 задания)
+```C#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
-## Задание 2. 
-### 
+[System.Serializable]
+public class TrainingSet
+{
+	public double[] input;
+	public double output;
+}
+
+public class Perceptron : MonoBehaviour 
+{
+	public event Action EpochIsCompleted;
+	[SerializeField] int epochs;
+	public TrainingSet[] ts;
+	double[] weights = {0,0};
+	double bias = 0;
+	public double totalError = 0;
+
+	double DotProductBias(double[] v1, double[] v2) 
+	{
+		if (v1 == null || v2 == null)
+			return -1;
+	 
+		if (v1.Length != v2.Length)
+			return -1;
+	 
+		double d = 0;
+		for (int x = 0; x < v1.Length; x++)
+		{
+			d += v1[x] * v2[x];
+		}
+
+		d += bias;
+	 
+		return d;
+	}
+
+	double CalcOutput(int i)
+	{
+		double dp = DotProductBias(weights,ts[i].input);
+		if(dp > 0) return(1);
+		return (0);
+	}
+
+	void InitialiseWeights()
+	{
+		for(int i = 0; i < weights.Length; i++)
+		{
+			weights[i] = UnityEngine.Random.Range(-1.0f,1.0f);
+		}
+		bias = UnityEngine.Random.Range(-1.0f,1.0f);
+	}
+
+	void UpdateWeights(int j)
+	{
+		double error = ts[j].output - CalcOutput(j);
+		totalError += Mathf.Abs((float)error);
+		for(int i = 0; i < weights.Length; i++)
+		{			
+			weights[i] = weights[i] + error*ts[j].input[i]; 
+		}
+		bias += error;
+	}
+
+	public double CalcOutput(double i1, double i2)
+	{
+		double[] inp = new double[] {i1, i2};
+		double dp = DotProductBias(weights,inp);
+		if(dp > 0) return(1);
+		return (0);
+	}
+
+	void Train()
+	{
+		totalError = 0;
+		for(int t = 0; t < ts.Length; t++)
+		{
+			UpdateWeights(t);
+			Debug.Log("W1: " + (weights[0]) + " W2: " + (weights[1]) + " B: " + bias);
+		}
+		Debug.Log("TOTAL ERROR: " + totalError);
+	}
+
+	IEnumerator TrainCoroutine(int epochs) 
+	{
+		for (int i = 0; i < epochs; i++)
+		{
+            yield return new WaitForSeconds(1.0f);
+            Train();
+            EpochIsCompleted?.Invoke();
+        }
+		PrintResult();
+	}
+	void PrintResult()
+	{
+        Debug.Log("Test 0 0: " + CalcOutput(0, 0));
+        Debug.Log("Test 0 1: " + CalcOutput(0, 1));
+        Debug.Log("Test 1 0: " + CalcOutput(1, 0));
+        Debug.Log("Test 1 1: " + CalcOutput(1, 1));
+    }
+
+	void Start () {
+        InitialiseWeights();
+		StartCoroutine(TrainCoroutine(epochs));
+	}
+}
+```
+- Запускаем код и видим результат (количество эпох: 5)
+
+Как выглядит проект в незапущенном виде
+![image](https://github.com/user-attachments/assets/f2543f28-2c3b-4341-b3e0-3ea8cd9463fd)
+Как выглядит проект в запущенном виде(результат)
+![image](https://github.com/user-attachments/assets/9c5bc0e8-62f1-4b8c-96b4-816a15e0952f)
+![image](https://github.com/user-attachments/assets/3d5dc240-e47d-4e81-8b51-a0fefa2a8015)
+- Как мы видим за 5 эпох, перцептрон смог обучиться вычислять выражение OR и выводит правильный результат
+
+
+## Задание 2. Построить графики зависимости количества эпох от ошибки обучения. Указать от чего зависит необходимое количество эпох обучения
 Ход работы:
-
-## Задание 3. 
-###
+- Поскольку веса и пороговое значения задаются случайным образом, график будет отличаться из раза в раз. Поэтому я решил запустить перцептрон с разным количеством эпох всего один раз
+- Далее я занес все значения в гугл таблицу и построил на их основе график
+![image](https://github.com/user-attachments/assets/2a5462be-ac26-403e-a59e-f7c34be60df7)
+Ссылка на таблицу: https://docs.google.com/spreadsheets/d/1OfrKf16pv_pNA-ZwetEWpByjoqtfVh3hGdsvrTYTwD4/edit?gid=0#gid=0
+- График получился не совсем понятным, но даже из него можно понять, что чем больше количество эпох, тем точнее будет результат вычисления перцептрона, но иногда может произойти ситуация, что при малом количестве эпох обучение может произойти успешно
+## Задание 3. Построить визуальную модель работы перцептрона на сцене Unity
 Ход работы:
+- Идея визуализации: при каждой пройденной эпохе на платформу будет падать кубик, который цветом будет отражать обученность модели. Если кубик красный модель не обучена, и если зеленый то обученна
+- Для реализации этой идеи я написал скрипт, который получает результат пройденной эпохи и на основе этих данных создает куб
+```C#
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
 
+public class CubeSpawner : MonoBehaviour
+{
+    [SerializeField] private Perceptron perceptron;
+    [SerializeField] private GameObject _prefab;
+    [SerializeField] private GameObject _platform;
+    [SerializeField] private TextMeshProUGUI _text;
+    private Vector3 lastPos;
+    private int epochs = 0;
 
+    private void OnEnable()
+    {
+        perceptron.EpochIsCompleted += CreateCube;
+    }
+    private void Start()
+    {
+        Vector3 platformPos = _platform.transform.position;
+        var x = platformPos.x - (_platform.transform.localScale.x)/2.0f + 2;
+        lastPos = new Vector3(x, platformPos.y + 10, platformPos.z);
+    }
+    private void CreateCube()
+    {
+        var obj = Instantiate(_prefab);
+        obj.transform.position = CalculateThePosition(lastPos);
+        lastPos = obj.transform.position;
+        var color = obj.GetComponent<MeshRenderer>();
+        if (perceptron.totalError > 0) 
+            color.material.color = Color.red;
+        else 
+            color.material.color = Color.green;
+        epochs++;
+        _text.text = epochs.ToString();
+    }
+
+    private Vector3 CalculateThePosition(Vector3 lastPosition)
+    {
+        var newPos = new Vector3(lastPosition.x + _prefab.transform.localScale.x + 1, lastPosition.y, lastPosition.z);
+        return newPos;
+    }
+
+}
+```
+- Так же я немного изменил скрипт перцептрона, для взаимодействия с скриптом выше (измененный скрипт перцептрона находиться в отчете по 1 заданию)
+- Результат:
+
+Сцена (запуск идет с 4 эпохами):
+![image](https://github.com/user-attachments/assets/d3366925-e427-47df-81d6-513ebff5f681)
+
+1 эпоха:
+![image](https://github.com/user-attachments/assets/c333941a-beda-4732-9c92-a435fcf80c82)
+
+2 эпоха:
+![image](https://github.com/user-attachments/assets/bc165d55-0252-466e-837e-5abbd51e47bc)
+
+3 эпоха:
+![image](https://github.com/user-attachments/assets/0258d671-8b87-4ec9-aef2-ba0809e4d4f1)
+
+4 эпоха:
+![image](https://github.com/user-attachments/assets/9b01830e-3893-4942-b9b8-e36b048df7c5)
+
+Финальное состояние:
+![image](https://github.com/user-attachments/assets/a447d0d4-e18e-4f4a-a962-7ff07b7c3091)
+
+- Как видно из скриншотов, визуализация успешно показывает состояние перцептрона на каждой стадии обучения(эпохе)
+  
 ## Выводы
-
+Я познакомился с первой моделью нейросети - перцептроном, а также построил модель и визуализировал работу в Unity
 | Plugin | README |
 | ------ | ------ |
 | Dropbox | [plugins/dropbox/README.md][PlDb] |
